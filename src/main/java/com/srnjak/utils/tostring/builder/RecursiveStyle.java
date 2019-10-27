@@ -3,6 +3,8 @@ package com.srnjak.utils.tostring.builder;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -14,12 +16,34 @@ import java.util.stream.Stream;
 public class RecursiveStyle extends RecursiveToStringStyle {
 
     /**
+     * Start map indicator
+     */
+    private static final String MAP_START = "{";
+
+    /**
+     * End map indicator
+     */
+    private static final String MAP_END = "}";
+
+    /**
+     * Separator of map entries
+     */
+    private static final String MAP_ENTRIES_SEPARATOR = ",";
+
+    /**
+     * Separator between key and value of the map entry
+     */
+    private static final String KEY_VALUE_SEPARATOR = "=";
+
+    /**
      * Builder for {@link RecursiveStyle}.
      */
     public static class Builder {
+
         private Class[] annotations = new Class[]{};
         private Class[] classes = new Class[]{};
         private String[] packages = new String[]{};
+
 
         /**
          * Specifies annotations to be accepted.
@@ -56,7 +80,6 @@ public class RecursiveStyle extends RecursiveToStringStyle {
             this.packages = packages;
             return this;
         }
-
         /**
          * Builds the {@link RecursiveStyle}.
          *
@@ -65,6 +88,7 @@ public class RecursiveStyle extends RecursiveToStringStyle {
         public RecursiveStyle build() {
             return new RecursiveStyle(annotations, classes, packages);
         }
+
     }
 
     /**
@@ -74,11 +98,11 @@ public class RecursiveStyle extends RecursiveToStringStyle {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
+    };
     private Class[] annotations;
     private Class[] classes;
     private String[] packages;
+
 
     /**
      * Constructor.
@@ -104,11 +128,64 @@ public class RecursiveStyle extends RecursiveToStringStyle {
     @Override
     protected boolean accept(Class<?> clazz) {
 
-        return Stream.of(
+        if (clazz.isEnum()) {
+            return false;
+        }
+
+        return List.of(
                 Arrays.stream(annotations).anyMatch(clazz::isAnnotationPresent),
-                Arrays.stream(classes).anyMatch(clazz::equals),
+                Arrays.asList(classes).contains(clazz),
                 Arrays.stream(packages).anyMatch(
                         clazz.getPackageName()::startsWith))
-                .anyMatch(Boolean.TRUE::equals);
+                .contains(Boolean.TRUE);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void appendDetail(
+            StringBuffer buffer, String fieldName, Map<?, ?> map) {
+        this.appendClassName(buffer, map);
+        this.appendIdentityHashCode(buffer, map);
+        this.appendDetail(
+                buffer,
+                fieldName,
+                map.entrySet().toArray(Map.Entry[]::new));
+    };
+
+    /**
+     * Append detail of map entry
+     *
+     * @param buffer string buffer to write into
+     * @param fieldName name of the field
+     * @param entries array of map entries
+     */
+    protected void appendDetail(
+            StringBuffer buffer,
+            String fieldName,
+            Map.Entry[] entries) {
+
+        buffer.append(MAP_START);
+
+        for(int i = 0; i < entries.length; ++i) {
+            Object key = entries[i].getKey();
+            Object value = entries[i].getValue();
+
+            if (i > 0) {
+                buffer.append(MAP_ENTRIES_SEPARATOR);
+            }
+
+            this.appendDetail(buffer, fieldName, key);
+            buffer.append(KEY_VALUE_SEPARATOR);
+
+            if (value == null) {
+                this.appendNullText(buffer, fieldName);
+            } else {
+                this.appendDetail(buffer, fieldName, value);
+            }
+        }
+
+        buffer.append(MAP_END);
     }
 }
