@@ -1,6 +1,8 @@
 package com.srnjak.utils.tostring.builder;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -187,5 +189,29 @@ public class RecursiveStyle extends RecursiveToStringStyle {
         }
 
         buffer.append(MAP_END);
+    }
+
+    /**
+     * Append detail of an object entry
+     *
+     * @param buffer string buffer to write into
+     * @param fieldName name of the field
+     * @param value the object value
+     */
+    @Override
+    public void appendDetail(
+            StringBuffer buffer,
+            String fieldName,
+            Object value) {
+
+        if (!ClassUtils.isPrimitiveWrapper(value.getClass())
+                && !String.class.equals(value.getClass())
+                && this.accept(value.getClass())) {
+
+            buffer.append(ToStringByFieldsBuilder.toString(value, this));
+        } else {
+            super.appendDetail(buffer, fieldName, value);
+        }
+
     }
 }
