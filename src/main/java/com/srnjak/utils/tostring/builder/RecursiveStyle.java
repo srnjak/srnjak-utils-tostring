@@ -2,12 +2,14 @@ package com.srnjak.utils.tostring.builder;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * <p>Recursive style for Apache's
@@ -46,6 +48,8 @@ public class RecursiveStyle extends RecursiveToStringStyle {
         private Class[] classes = new Class[]{};
         private String[] packages = new String[]{};
 
+        private Class<? extends ToStringBuilder> toStringBuilderClass =
+                ToStringBuilder.class;
 
         /**
          * Specifies annotations to be accepted.
@@ -82,15 +86,29 @@ public class RecursiveStyle extends RecursiveToStringStyle {
             this.packages = packages;
             return this;
         }
+
+        /**
+         * Specifies the toStringBuilder class.
+         *
+         * @param toStringBuilderClass The toStringBuilder class.
+         * @return this builder
+         */
+        public Builder toStringBuilder(
+                Class<? extends ToStringBuilder> toStringBuilderClass) {
+
+            this.toStringBuilderClass = toStringBuilderClass;
+            return this;
+        }
+
         /**
          * Builds the {@link RecursiveStyle}.
          *
          * @return The {@link RecursiveStyle} object.
          */
         public RecursiveStyle build() {
-            return new RecursiveStyle(annotations, classes, packages);
+            return new RecursiveStyle(
+                    annotations, classes, packages, toStringBuilderClass);
         }
-
     }
 
     /**
@@ -101,9 +119,11 @@ public class RecursiveStyle extends RecursiveToStringStyle {
     public static Builder builder() {
         return new Builder();
     };
-    private Class[] annotations;
-    private Class[] classes;
+    private Class<? extends Annotation>[] annotations;
+    private Class<?>[] classes;
     private String[] packages;
+
+    private Class<? extends ToStringBuilder> toStringBuilderClass;
 
 
     /**
@@ -115,13 +135,19 @@ public class RecursiveStyle extends RecursiveToStringStyle {
      * @param classes Classes of object to be accepted in recursion.
      * @param packages If object type is part of package or subpackage from
      *                 the array, the object will be accepted in recursion.
+     * @param toStringBuilderClass The class to build string out of an object.
      */
     public RecursiveStyle(
-            Class[] annotations, Class[] classes, String[] packages) {
+            Class<? extends Annotation>[] annotations,
+            Class<?>[] classes,
+            String[] packages,
+            Class<? extends ToStringBuilder> toStringBuilderClass) {
 
         this.annotations = annotations;
         this.classes = classes;
         this.packages = packages;
+
+        this.toStringBuilderClass = toStringBuilderClass;
     }
 
     /**
@@ -166,7 +192,7 @@ public class RecursiveStyle extends RecursiveToStringStyle {
     protected void appendDetail(
             StringBuffer buffer,
             String fieldName,
-            Map.Entry[] entries) {
+            Map.Entry<?, ?>[] entries) {
 
         buffer.append(MAP_START);
 
@@ -208,7 +234,20 @@ public class RecursiveStyle extends RecursiveToStringStyle {
                 && !String.class.equals(value.getClass())
                 && this.accept(value.getClass())) {
 
-            buffer.append(ToStringByFieldsBuilder.toString(value, this));
+            try {
+                buffer.append(
+                        toStringBuilderClass
+                                .getMethod(
+                                        "toString",
+                                        Object.class,
+                                        ToStringStyle.class)
+                                .invoke(null, value, this));
+            } catch (IllegalAccessException
+                    | InvocationTargetException
+                    | NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+
         } else {
             super.appendDetail(buffer, fieldName, value);
         }
