@@ -3,9 +3,8 @@ package com.srnjak.utils.tostring.builder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Assists in implementing {@link Object#toString()} methods
@@ -33,7 +33,7 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
      * Logger
      */
     private static final Logger log =
-            LoggerFactory.getLogger(ToStringByFieldsBuilder.class);
+            Logger.getLogger(ToStringByGettersBuilder.class.getName());
 
     /**
      * <p>
@@ -368,12 +368,8 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                         throw new RuntimeException(e);
 
                     } catch (RuntimeException e) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(e.toString());
-                        }
-                        if (log.isTraceEnabled()) {
-                            log.trace(e.toString(), e);
-                        }
+                        log.finer(e::toString);
+                        log.finest(() -> ExceptionUtils.getStackTrace(e));
 
                         this.append(null, "<N/A>");
                     }

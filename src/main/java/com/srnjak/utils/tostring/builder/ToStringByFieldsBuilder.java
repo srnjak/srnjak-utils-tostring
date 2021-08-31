@@ -3,14 +3,15 @@ package com.srnjak.utils.tostring.builder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Assists in implementing {@link Object#toString()} methods using reflection.
@@ -26,7 +27,7 @@ public class ToStringByFieldsBuilder extends ReflectionToStringBuilder {
      * Logger
      */
     private static final Logger log =
-            LoggerFactory.getLogger(ToStringByFieldsBuilder.class);
+            Logger.getLogger(ToStringByFieldsBuilder.class.getName());
 
     /**
      * <p>
@@ -429,12 +430,8 @@ public class ToStringByFieldsBuilder extends ReflectionToStringBuilder {
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 } catch (RuntimeException e) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(e.toString());
-                    }
-                    if (log.isTraceEnabled()) {
-                        log.trace(e.toString(), e);
-                    }
+                    log.finer(e::toString);
+                    log.finest(() -> ExceptionUtils.getStackTrace(e));
 
                     this.append(null, "<N/A>");
                 }
