@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /root/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -28,7 +28,7 @@ jobs:
         run: mvn -B package --file pom.xml -s mvn-settings.xml
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: packaged-jars
           path: target/*.jar
@@ -42,6 +42,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up environment variables
+        run: |
+          echo "OSSRH_USERNAME_PARAM=${{ secrets.OSSRH_USERNAME }}" >> $GITHUB_ENV
+          echo "OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Deploy with Maven
         run: |
