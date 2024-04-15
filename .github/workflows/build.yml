@@ -71,6 +71,7 @@ jobs:
           mvn -B versions:set -DremoveSnapshot=true
           mvn clean package
           mvn -B scm:checkin -Dmessage="[release] Release version prepared." -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+          mvn -B scm:tag deploy -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
           mvn versions:set -DnextSnapshot=true
           mvn -B scm:checkin -Dmessage="[release] New snapshot version prepared."
 
