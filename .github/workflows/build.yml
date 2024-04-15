@@ -47,7 +47,7 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo "OSSRH_USERNAME_PARAM=${{ env.OSSRH_USERNAME_PARAM }}" >> $GITHUB_ENV
+          echo "OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}" >> $GITHUB_ENV
           echo "OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}" >> $GITHUB_ENV
 
       - name: Deploy with Maven
