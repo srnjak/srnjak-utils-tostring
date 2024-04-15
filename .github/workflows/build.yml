@@ -34,7 +34,7 @@ jobs:
           name: packaged-jars
           path: target/*.jar
 
-  deploy:
+  deploy-snapshot:
     needs: build
     name: Deploy Snapshot
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
           mvn versions:set -DnextSnapshot=true
           mvn -B scm:checkin -Dmessage="[release] New snapshot version prepared."
 
-  merge:
+  merge-to-develop:
     needs: release
     name: Merge master into develop
     runs-on: ubuntu-latest
@@ -94,3 +94,25 @@ jobs:
           git config user.email github-actions@github.com
           git merge master --no-ff --strategy-option theirs
           git push origin develop
+  merge-to-master:
+    name: Merge Develop to Master
+    runs-on: ubuntu-latest
+    needs: deploy-snapshot
+    if: github.event_name == 'workflow_dispatch'  # Only runs when manually triggered
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop  # Always checks out the develop branch
+
+      - name: Configure Git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Merge develop into master
+        run: |
+          git fetch origin master
+          git checkout master
+          git merge --no-ff develop -m "Merge develop into master via GitHub Actions"
+          git push origin master
