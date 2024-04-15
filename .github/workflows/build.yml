@@ -43,7 +43,7 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-4
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up environment variables
         run: |
@@ -64,7 +64,7 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-4
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Release with Maven
         run: |
@@ -84,7 +84,7 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-4
     steps:
       - name: Checkout develop branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: develop
 
