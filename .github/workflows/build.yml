@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     container:
       image: srnjak/ci-builder-maven:3.9.6-4
@@ -35,6 +36,7 @@ jobs:
 
   deploy:
     needs: build
+    name: Deploy Snapshot
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
     container:
@@ -45,8 +47,8 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo "OSSRH_USERNAME_PARAM=${{ secrets.OSSRH_USERNAME }}" >> $GITHUB_ENV
-          echo "OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD }}" >> $GITHUB_ENV
+          echo "OSSRH_USERNAME_PARAM=${{ env.OSSRH_USERNAME_PARAM }}" >> $GITHUB_ENV
+          echo "OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}" >> $GITHUB_ENV
 
       - name: Deploy with Maven
         run: |
@@ -55,6 +57,7 @@ jobs:
 
   release:
     needs: build
+    name: Release
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, '[release] ')
     container:
@@ -74,6 +77,7 @@ jobs:
 
   merge:
     needs: release
+    name: Merge master into develop
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     container:
