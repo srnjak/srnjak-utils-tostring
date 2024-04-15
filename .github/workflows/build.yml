@@ -1,0 +1,95 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches:
+      - '*' # All branches
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    container:
+      image: srnjak/ci-builder-maven:3.9.6-4
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up cache
+        uses: actions/cache@v4
+        with:
+          path: /root/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml -s mvn-settings.xml
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-jars
+          path: target/*.jar
+
+  deploy-snapshot:
+    needs: build
+    name: Deploy Snapshot
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    container:
+      image: srnjak/ci-builder-maven:3.9.6-4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up environment variables
+        run: |
+          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+
+      - name: Deploy with Maven
+        run: |
+          echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 --decode | gpg --batch --import
+          mvn -B deploy --file pom.xml -s mvn-settings.xml -DskipTests -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+
+  release:
+    needs: build
+    name: Release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && !startsWith(github.event.head_commit.message, '[release] ')
+    container:
+      image: srnjak/ci-builder-maven:3.9.6-4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Release with Maven
+        run: |
+          echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 --decode | gpg --batch --import
+          mvn -B versions:set -DremoveSnapshot=true
+          mvn clean package
+          mvn -B scm:checkin -Dmessage="[release] Release version prepared." -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+          mvn versions:set -DnextSnapshot=true
+          mvn -B scm:checkin -Dmessage="[release] New snapshot version prepared."
+
+  merge-to-develop:
+    needs: release
+    name: Merge master into develop
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    container:
+      image: srnjak/ci-builder-maven:3.9.6-4
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Merge master into develop
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git merge master --no-ff --strategy-option theirs
+          git push origin develop
