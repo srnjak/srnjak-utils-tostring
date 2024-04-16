@@ -97,10 +97,14 @@ jobs:
       - name: Build and Deploy to OSSRH
         run: |
           mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
-  
+
+      - name: Extract Last Staging Repository ID
+        id: get_repo_id
+        run: echo "::set-output name=staging_repo_id::$(./scripts/extract_staging_repo_id.sh comsrnjak)"
+
       - name: Release to Maven Central
         run: |
-          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -s mvn-settings.xml
+          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -s mvn-settings.xml -DstagingRepositoryId=${{ steps.get_repo_id.outputs.staging_repo_id }}
   
       - name: Prepare Next Snapshot Version
         run: |
