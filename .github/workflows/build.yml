@@ -69,17 +69,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full history for tagging
 
-      - name: Setup SSH Known Hosts
+      - name: Configure Git for HTTPS
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-      - name: Configure Git
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions@github.com
-          git config --global --add safe.directory '*'
+          git config user.name github-actions
+          git config user.email github-actions@github.com
 
       - name: Release with Maven
         run: |
