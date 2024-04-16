@@ -100,11 +100,11 @@ jobs:
 
       - name: Extract Last Staging Repository ID
         id: get_repo_id
-        run: echo "::set-output name=staging_repo_id::$(./scripts/extract_staging_repo_id.sh comsrnjak)"
+        run: echo "STAGING_REPO_ID=$(./scripts/extract_staging_repo_id.sh comsrnjak-)" >> $GITHUB_ENV
 
       - name: Release to Maven Central
         run: |
-          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -s mvn-settings.xml -DstagingRepositoryId=${{ steps.get_repo_id.outputs.staging_repo_id }}
+          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -s mvn-settings.xml -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
   
       - name: Prepare Next Snapshot Version
         run: |
