@@ -70,8 +70,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Disable Git ownership check
-        run: git config --global --add safe.directory '*'
+      - name: Configure Git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git config --global --add safe.directory '*'
 
       - name: Release with Maven
         run: |
