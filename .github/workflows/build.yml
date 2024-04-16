@@ -3,10 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - '*' # All branches
+      - '*'  # All branches
   workflow_dispatch:
   workflow_run:
-    workflows: [ "Merge Develop to Master" ]
+    workflows: ["Merge Develop to Master"]
     types:
       - completed
 
@@ -77,7 +77,8 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config --global user.name github-actions
           git config --global user.email github-actions@github.com
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git remote set-url origin https://github.com/${{ github.repository }}.git
 
       - name: Release with Maven
         run: |
