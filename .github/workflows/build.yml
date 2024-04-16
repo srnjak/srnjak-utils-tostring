@@ -72,6 +72,11 @@ jobs:
         with:
           fetch-depth: 0  # Ensures full history for tagging
 
+      - name: Set up environment variables
+        run: |
+          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+
       - name: Configure Git
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
