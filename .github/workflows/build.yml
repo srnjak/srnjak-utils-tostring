@@ -85,13 +85,25 @@ jobs:
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "git@github.com:"
           git remote set-url origin https://github.com/${{ github.repository }}.git
 
-      - name: Release with Maven
+      - name: Import GPG Key
         run: |
           echo ${{ secrets.GPG_PRIVATE_KEY }} | base64 --decode | gpg --batch --import
+  
+      - name: Prepare Release Version
+        run: |
           mvn -B versions:set -s mvn-settings.xml -DremoveSnapshot=true
-          mvn clean package
           mvn -B scm:checkin -s mvn-settings.xml -Dmessage="[release] Release version prepared."
-          mvn -B scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+  
+      - name: Build and Deploy to OSSRH
+        run: |
+          mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+  
+      - name: Release to Maven Central
+        run: |
+          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -s mvn-settings.xml
+  
+      - name: Prepare Next Snapshot Version
+        run: |
           mvn versions:set -s mvn-settings.xml -DnextSnapshot=true
           mvn -B scm:checkin -s mvn-settings.xml -Dmessage="[release] New snapshot version prepared."
 
