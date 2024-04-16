@@ -74,11 +74,10 @@ jobs:
 
       - name: Configure Git
         run: |
-          mkdir -p ~/.ssh
-          echo "$(ssh-keyscan -t rsa,dsa github.com)" >> ~/.ssh/known_hosts
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git config --global user.name github-actions
           git config --global user.email github-actions@github.com
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
 
       - name: Release with Maven
         run: |
