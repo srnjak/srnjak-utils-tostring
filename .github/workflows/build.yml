@@ -98,14 +98,20 @@ jobs:
         run: |
           mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
 
-      - name: Release to Maven Central
+      - name: Extract Last Staging Repository ID
         env:
-          MAVEN_OPTS: "--add-opens java.base/java.util=ALL-UNNAMED"
           MVN_SETTINGS_PATH: '${{ github.workspace }}/mvn-settings.xml'
         run: |
           STAGING_REPO_ID=$(./scripts/extract_staging_repo_id.sh comsrnjak-)
           echo "Extracted Staging Repository ID: $STAGING_REPO_ID"
-          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -DstagingRepositoryId=$STAGING_REPO_ID
+          echo "STAGING_REPO_ID=$STAGING_REPO_ID" >> $GITHUB_ENV
+
+      - name: Release to Maven Central
+        env:
+          MAVEN_OPTS: "--add-opens java.base/java.util=ALL-UNNAMED"
+        run: |
+          mvn -B nexus-staging:close -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
+          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
   
       - name: Prepare Next Snapshot Version
         run: |
