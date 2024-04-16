@@ -99,8 +99,10 @@ jobs:
           mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
 
       - name: Release to Maven Central
+        env:
+          MAVEN_OPTS: "--add-opens java.base/java.util=ALL-UNNAMED"
+          MVN_SETTINGS_PATH: '${{ github.workspace }}/mvn-settings.xml'
         run: |
-          export MAVEN_OPTS="--add-opens java.base/java.util=ALL-UNNAMED"
           STAGING_REPO_ID=$(./scripts/extract_staging_repo_id.sh comsrnjak-)
           echo "Extracted Staging Repository ID: $STAGING_REPO_ID"
           mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -DstagingRepositoryId=$STAGING_REPO_ID
