@@ -77,6 +77,11 @@ jobs:
           echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
           echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
 
+      - name: Add GitHub.com to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Configure Git
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -129,6 +134,11 @@ jobs:
         with:
           ref: develop
           fetch-depth: 0  # Fetches all history for all branches and tags
+
+      - name: Add GitHub.com to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Configure Git
         run: |
