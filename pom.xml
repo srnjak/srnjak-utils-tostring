@@ -35,17 +35,6 @@
         <url>https://github.com/srnjak/srnjak-utils-tostring</url>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-    </distributionManagement>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -132,15 +121,21 @@
                 <version>2.16.2</version>
             </plugin>
             <plugin>
-                 <groupId>org.sonatype.plugins</groupId>
-                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                 <version>1.6.13</version>
-                 <configuration>
-                     <serverId>ossrh</serverId>
-                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                 </configuration>
-             </plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.11.0</version>
+                <!-- Registers a lifecycle participant that takes over the
+                     deploy phase, for releases and snapshots alike. -->
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <!-- Publish without manual approval in the portal. -->
+                    <autoPublish>true</autoPublish>
+                    <!-- Fail the build unless the deployment really went
+                         public, rather than only passing validation. -->
+                    <waitUntil>PUBLISHED</waitUntil>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
