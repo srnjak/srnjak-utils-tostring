@@ -8,7 +8,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -420,6 +422,7 @@ public class ToStringByFieldsBuilder extends ReflectionToStringBuilder {
         }
 
         Field[] fields = clazz.getDeclaredFields();
+        Arrays.sort(fields, Comparator.comparing(Field::getName));
         AccessibleObject.setAccessible(fields, true);
         for (Field field : fields) {
             String fieldName = field.getName();

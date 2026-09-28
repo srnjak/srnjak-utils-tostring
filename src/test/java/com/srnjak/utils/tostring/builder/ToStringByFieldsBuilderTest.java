@@ -15,9 +15,9 @@ class ToStringByFieldsBuilderTest {
             new Address("Main Street 1", "Springfield");
 
     @Test
-    void rendersDeclaredFieldsInDeclarationOrder() {
+    void rendersDeclaredFieldsInAlphabeticalOrder() {
         assertEquals(
-                "[street=Main Street 1,city=Springfield]",
+                "[city=Springfield,street=Main Street 1]",
                 ToStringByFieldsBuilder.toString(
                         ADDRESS, ToStringStyle.NO_CLASS_NAME_STYLE));
     }
@@ -45,6 +45,16 @@ class ToStringByFieldsBuilderTest {
                 new WithExcludedField(), ToStringStyle.NO_CLASS_NAME_STYLE);
 
         assertFalse(result.contains("temporary"), result);
+    }
+
+    @Test
+    void agreesWithGetterBasedBuilderOnMemberOrder() {
+        assertEquals(
+                ToStringByGettersBuilder.toString(
+                        ADDRESS, ToStringStyle.NO_CLASS_NAME_STYLE),
+                ToStringByFieldsBuilder.toString(
+                        ADDRESS, ToStringStyle.NO_CLASS_NAME_STYLE),
+                "both builders must order members the same way");
     }
 
     @Test

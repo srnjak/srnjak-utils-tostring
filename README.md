@@ -44,21 +44,24 @@ Person person = new Person("Jane", 30, new Address("Main Street 1", "Springfield
 
 ```java
 ToStringByFieldsBuilder.toString(person);
-// com.example.Person@13221655[name=Jane,age=30,address=com.example.Address@7ba4f24f,favorite=RED]
+// com.example.Person@13221655[address=com.example.Address@448139f0,age=30,favorite=RED,name=Jane]
 ```
 
-Fields appear in declaration order. Transient and static fields are left out.
+Transient and static fields are left out.
 
 ### From getters
 
 ```java
 ToStringByGettersBuilder.toString(person, ToStringStyle.NO_CLASS_NAME_STYLE);
-// [address=com.example.Address@7ba4f24f,age=30,favorite=RED,name=Jane]
+// [address=com.example.Address@448139f0,age=30,favorite=RED,name=Jane]
 ```
 
-Properties are read through `java.beans.Introspector`, so they appear in
-alphabetical order and include computed properties that have no backing
-field.
+Properties are read through `java.beans.Introspector`, so computed
+properties that have no backing field are included too.
+
+Both builders order members alphabetically by name, so output from one can
+be compared against the other. For a type whose properties all have backing
+fields, the two produce the same string.
 
 Any `ToStringStyle` from Commons Lang works with either builder.
 
@@ -111,8 +114,9 @@ ToStringStyle style = RecursiveStyle.builder()
         .build();
 
 ToStringByFieldsBuilder.toString(person, style);
-// com.example.Person@13221655[name=Jane,age=30,
-//   address=com.example.Address@7ba4f24f[street=Main Street 1,city=Springfield],favorite=RED]
+// com.example.Person@13221655[
+//   address=com.example.Address@448139f0[city=Springfield,street=Main Street 1],
+//   age=30,favorite=RED,name=Jane]
 ```
 
 > **Always call `toStringBuilder(...)`.**
@@ -142,6 +146,11 @@ builder. They now render properties, as the class name always promised.
 Output therefore changes for existing callers of those two methods: computed
 properties appear, `@ToStringExclude` on a getter starts being honoured, and
 the inherited `class=...` entry no longer leaks into the result.
+
+`ToStringByFieldsBuilder` now orders fields alphabetically rather than by
+declaration, so that both builders agree. `Class.getDeclaredFields()`
+guarantees no particular order in the first place, so the previous output was
+only incidentally stable.
 
 ## Snapshots
 
