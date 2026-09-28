@@ -1,0 +1,16 @@
+version: 2
+
+updates:
+  # Version updates open against develop, the branch features are merged
+  # into. Security updates ignore target-branch and always go to the
+  # default branch, master; that cannot be redirected.
+  - package-ecosystem: maven
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: weekly
+    ignore:
+      # JUnit 6 is compiled for Java 17, while this project targets Java 11
+      # through <release>11, so a major update would not compile here.
+      - dependency-name: org.junit.jupiter:junit-jupiter
+        update-types: ["version-update:semver-major"]
