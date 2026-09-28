@@ -3,7 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - '*'  # All branches
+      # '*' does not match a '/', so feature branches were never built.
+      - '**'  # All branches, including those with a slash
   workflow_dispatch:
   workflow_run:
     workflows: ["Merge Develop to Master"]
