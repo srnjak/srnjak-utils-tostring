@@ -547,23 +547,31 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                 final String fieldName = propertyDescriptor.getName();
                 if (this.accept(propertyDescriptor)) {
 
+                    final Object value;
                     try {
-                        this.append(
-                                fieldName, this.getValue(propertyDescriptor));
+                        value = this.getValue(propertyDescriptor);
 
                     } catch (InvocationTargetException e) {
-                        if (e.getCause() instanceof RuntimeException) {
-                            appendNotAvailable(e.getCause());
-                        } else {
+                        if (!(e.getCause() instanceof RuntimeException)) {
                             throw new RuntimeException(e);
                         }
+
+                        appendNotAvailable(fieldName, e.getCause());
+                        continue;
 
                     } catch (IllegalAccessException |
                             IllegalArgumentException e) {
                         throw new RuntimeException(e);
 
                     } catch (RuntimeException e) {
-                        appendNotAvailable(e);
+                        appendNotAvailable(fieldName, e);
+                        continue;
+                    }
+
+                    try {
+                        this.append(fieldName, value);
+                    } catch (RuntimeException e) {
+                        appendNotAvailable(null, e);
                     }
                 }
             }
@@ -574,15 +582,25 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
 
     /**
      * Logs the cause and reports <code>&lt;N/A&gt;</code> in place of the
-     * value that could not be read.
+     * value that could not be rendered.
      *
-     * @param cause the exception raised while reading the value
+     * <p>
+     * Pass the property name when the failure happened before anything was
+     * written, and <code>null</code> when the style has already written the
+     * name into the buffer, so that it is not repeated.
+     * </p>
+     *
+     * @param fieldName the property name, or <code>null</code> if already
+     *                  written
+     * @param cause     the exception raised
      */
-    private void appendNotAvailable(final Throwable cause) {
+    private void appendNotAvailable(
+            final String fieldName, final Throwable cause) {
+
         log.finer(cause::toString);
         log.finest(() -> ExceptionUtils.getStackTrace(cause));
 
-        this.append(null, "<N/A>");
+        this.append(fieldName, "<N/A>");
     }
 
     /**

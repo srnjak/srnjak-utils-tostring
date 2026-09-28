@@ -1,6 +1,7 @@
 package com.srnjak.utils.tostring.builder;
 
 import com.srnjak.utils.tostring.model.Address;
+import com.srnjak.utils.tostring.model.HoldsBrokenToString;
 import com.srnjak.utils.tostring.model.WithExcludedField;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,14 @@ class ToStringByFieldsBuilderTest {
                 ToStringByFieldsBuilder.toString(
                         ADDRESS, ToStringStyle.NO_CLASS_NAME_STYLE),
                 "both builders must order members the same way");
+    }
+
+    @Test
+    void reportsNotAvailableWhenValueCannotRenderItself() {
+        String result = ToStringByFieldsBuilder.toString(
+                new HoldsBrokenToString(), ToStringStyle.NO_CLASS_NAME_STYLE);
+
+        assertEquals("[broken=<N/A>,ok=yes]", result);
     }
 
     @Test

@@ -91,15 +91,16 @@ backing field.
 
 ### Values that cannot be read
 
-If reading a value throws a `RuntimeException`, it is logged at `FINER` and
-reported as `<N/A>` instead of failing the whole call:
+If a value cannot be rendered, it is logged at `FINER` and reported as
+`<N/A>` under its own name, rather than failing the whole call:
 
 ```java
 ToStringByGettersBuilder.toString(broken, ToStringStyle.NO_CLASS_NAME_STYLE);
-// [<N/A>,fine=ok]
+// [broken=<N/A>,fine=ok]
 ```
 
-Note that the member name is not part of that entry.
+This covers both a getter that throws and a value whose own `toString()`
+throws. Anything other than a `RuntimeException` still propagates.
 
 ### Recursion
 
@@ -157,6 +158,10 @@ the inherited `class=...` entry no longer leaks into the result.
 declaration, so that both builders agree. `Class.getDeclaredFields()`
 guarantees no particular order in the first place, so the previous output was
 only incidentally stable.
+
+A member that cannot be rendered is now reported as `name=<N/A>`. When a
+getter threw, the entry used to be a bare `<N/A>` with no name, so there was
+no way to tell which member had failed.
 
 `RecursiveStyle.builder()` now defaults to `ToStringByFieldsBuilder`. It used
 to default to Commons Lang's `ToStringBuilder`, which cannot serve the
