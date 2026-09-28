@@ -14,3 +14,12 @@ updates:
       # through <release>11, so a major update would not compile here.
       - dependency-name: org.junit.jupiter:junit-jupiter
         update-types: ["version-update:semver-major"]
+
+  # The pinned actions/* versions had to be raised by hand once they started
+  # warning about the Node.js 20 runtime going away. Watching them here is
+  # what stops that from creeping up again.
+  - package-ecosystem: github-actions
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: weekly
