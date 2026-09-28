@@ -7,6 +7,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +51,7 @@ public class RecursiveStyle extends RecursiveToStringStyle {
         private String[] packages = new String[]{};
 
         private Class<? extends ToStringBuilder> toStringBuilderClass =
-                ToStringBuilder.class;
+                ToStringByFieldsBuilder.class;
 
         /**
          * Specifies annotations to be accepted.
@@ -147,7 +149,47 @@ public class RecursiveStyle extends RecursiveToStringStyle {
         this.classes = classes;
         this.packages = packages;
 
-        this.toStringBuilderClass = toStringBuilderClass;
+        this.toStringBuilderClass =
+                requireRecursionCapable(toStringBuilderClass);
+    }
+
+    /**
+     * Verifies up front that the given class can serve the callback this
+     * style performs, so that a misconfigured style fails here rather than
+     * rendering every accepted object as <code>&lt;N/A&gt;</code>.
+     *
+     * @param toStringBuilderClass The class to check.
+     * @return The same class.
+     * @throws IllegalArgumentException if the class declares no public
+     *         static <code>toString(Object, ToStringStyle)</code>
+     */
+    private static Class<? extends ToStringBuilder> requireRecursionCapable(
+            Class<? extends ToStringBuilder> toStringBuilderClass) {
+
+        final Method method;
+        try {
+            method = toStringBuilderClass.getMethod(
+                    "toString", Object.class, ToStringStyle.class);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(
+                    toStringBuilderClass.getName()
+                            + " cannot be used for recursion: it declares no"
+                            + " public static toString(Object, ToStringStyle)."
+                            + " Use " + ToStringByFieldsBuilder.class.getName()
+                            + " or " + ToStringByGettersBuilder.class.getName()
+                            + ".",
+                    e);
+        }
+
+        if (!Modifier.isStatic(method.getModifiers())) {
+            throw new IllegalArgumentException(
+                    toStringBuilderClass.getName()
+                            + " cannot be used for recursion: its"
+                            + " toString(Object, ToStringStyle) is not"
+                            + " static.");
+        }
+
+        return toStringBuilderClass;
     }
 
     /**

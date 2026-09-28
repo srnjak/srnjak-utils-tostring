@@ -6,12 +6,14 @@ import com.srnjak.utils.tostring.model.Marked;
 import com.srnjak.utils.tostring.model.Marker;
 import com.srnjak.utils.tostring.model.Person;
 import com.srnjak.utils.tostring.model.WithMap;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RecursiveStyleTest {
@@ -29,6 +31,30 @@ class RecursiveStyleTest {
     private static RecursiveStyle.Builder style() {
         return RecursiveStyle.builder()
                 .toStringBuilder(ToStringByFieldsBuilder.class);
+    }
+
+    @Test
+    void usesFieldBasedBuilderByDefault() {
+        String result = ToStringByFieldsBuilder.toString(
+                PERSON,
+                RecursiveStyle.builder()
+                        .acceptClasses(Address.class)
+                        .build());
+
+        assertTrue(result.contains("street=Main Street 1"), result);
+    }
+
+    @Test
+    void rejectsBuilderThatCannotServeRecursion() {
+        IllegalArgumentException e = assertThrows(
+                IllegalArgumentException.class,
+                () -> RecursiveStyle.builder()
+                        .toStringBuilder(ToStringBuilder.class)
+                        .build());
+
+        assertTrue(
+                e.getMessage().contains(ToStringBuilder.class.getName()),
+                e.getMessage());
     }
 
     @Test

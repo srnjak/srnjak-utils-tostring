@@ -109,7 +109,6 @@ package prefix:
 
 ```java
 ToStringStyle style = RecursiveStyle.builder()
-        .toStringBuilder(ToStringByFieldsBuilder.class)
         .acceptPackages("com.example")
         .build();
 
@@ -119,12 +118,19 @@ ToStringByFieldsBuilder.toString(person, style);
 //   age=30,favorite=RED,name=Jane]
 ```
 
-> **Always call `toStringBuilder(...)`.**
-> It defaults to Commons Lang's `ToStringBuilder`, which has no static
-> `toString(Object, ToStringStyle)` for the style to call back into. Leaving
-> the default does not fail loudly — every accepted object silently renders as
-> `<N/A>`. Pass `ToStringByFieldsBuilder.class` or
-> `ToStringByGettersBuilder.class`.
+To expand nested objects through getters instead, pass the other builder:
+
+```java
+RecursiveStyle.builder()
+        .toStringBuilder(ToStringByGettersBuilder.class)
+        .acceptPackages("com.example")
+        .build();
+```
+
+Whatever you pass has to declare a public static
+`toString(Object, ToStringStyle)`, because that is the callback the style
+performs. Anything else is rejected by `build()` with an
+`IllegalArgumentException`.
 
 Enums are never expanded, whatever the filters say, so they keep rendering as
 their constant name.
@@ -151,6 +157,12 @@ the inherited `class=...` entry no longer leaks into the result.
 declaration, so that both builders agree. `Class.getDeclaredFields()`
 guarantees no particular order in the first place, so the previous output was
 only incidentally stable.
+
+`RecursiveStyle.builder()` now defaults to `ToStringByFieldsBuilder`. It used
+to default to Commons Lang's `ToStringBuilder`, which cannot serve the
+callback the style performs, so every accepted object rendered as `<N/A>`
+instead of expanding. Styles that already passed `toStringBuilder(...)` are
+unaffected.
 
 ## Snapshots
 
