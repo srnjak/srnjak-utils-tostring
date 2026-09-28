@@ -8,7 +8,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -401,6 +403,29 @@ public class ToStringByFieldsBuilder extends ReflectionToStringBuilder {
     }
 
     /**
+     * Logs the cause and reports <code>&lt;N/A&gt;</code> in place of the
+     * value that could not be rendered.
+     *
+     * <p>
+     * Pass the member name when the failure happened before anything was
+     * written, and <code>null</code> when the style has already written the
+     * name into the buffer, so that it is not repeated.
+     * </p>
+     *
+     * @param fieldName the member name, or <code>null</code> if already
+     *                  written
+     * @param cause     the exception raised
+     */
+    private void appendNotAvailable(
+            final String fieldName, final RuntimeException cause) {
+
+        log.finer(cause::toString);
+        log.finest(() -> ExceptionUtils.getStackTrace(cause));
+
+        this.append(fieldName, "<N/A>");
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -420,20 +445,25 @@ public class ToStringByFieldsBuilder extends ReflectionToStringBuilder {
         }
 
         Field[] fields = clazz.getDeclaredFields();
+        Arrays.sort(fields, Comparator.comparing(Field::getName));
         AccessibleObject.setAccessible(fields, true);
         for (Field field : fields) {
             String fieldName = field.getName();
             if (this.accept(field)) {
+                final Object fieldValue;
                 try {
-                    Object fieldValue = this.getValue(field);
-                    this.append(fieldName, fieldValue);
+                    fieldValue = this.getValue(field);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 } catch (RuntimeException e) {
-                    log.finer(e::toString);
-                    log.finest(() -> ExceptionUtils.getStackTrace(e));
+                    appendNotAvailable(fieldName, e);
+                    continue;
+                }
 
-                    this.append(null, "<N/A>");
+                try {
+                    this.append(fieldName, fieldValue);
+                } catch (RuntimeException e) {
+                    appendNotAvailable(null, e);
                 }
             }
         }

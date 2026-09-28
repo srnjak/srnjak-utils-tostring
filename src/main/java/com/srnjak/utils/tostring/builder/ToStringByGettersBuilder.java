@@ -51,7 +51,7 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
      * @see org.apache.commons.lang3.builder.ToStringExclude
      */
     public static String toString(final Object object) {
-        return toString(object, null, false, false, null);
+        return toString(object, null, (Class<Object>) null);
     }
 
     /**
@@ -78,7 +78,7 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
      */
     public static String toString(
             final Object object, final ToStringStyle style) {
-        return toString(object, style, false, false, null);
+        return toString(object, style, (Class<Object>) null);
     }
 
     /**
@@ -124,6 +124,186 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                 style,
                 null,
                 reflectUpToClass)
+                .toString();
+    }
+
+    /**
+     * Builds a <code>toString</code> value from getters through reflection.
+     *
+     * <p>
+     * This overload hides the inherited
+     * {@link ReflectionToStringBuilder#toString(Object, ToStringStyle,
+     * boolean)}, which would produce field based output.
+     * </p>
+     *
+     * <p>
+     * <code>outputTransients</code> has no meaning for property based
+     * output and is ignored.
+     * </p>
+     *
+     * @param object the Object to be output
+     * @param style  the style of the <code>toString</code> to create,
+     *               may be <code>null</code>
+     * @param outputTransients ignored, kept for signature compatibility
+     * @return the String result
+     */
+    public static String toString(
+            final Object object,
+            final ToStringStyle style,
+            final boolean outputTransients) {
+
+        return toString(object, style, (Class<Object>) null);
+    }
+
+    /**
+     * Builds a <code>toString</code> value from getters through reflection.
+     *
+     * <p>
+     * This overload hides the inherited
+     * {@link ReflectionToStringBuilder#toString(Object, ToStringStyle,
+     * boolean, boolean)}, which would produce field based output.
+     * </p>
+     *
+     * <p>
+     * <code>outputTransients</code> and <code>outputStatics</code> have no
+     * meaning for property based output and are ignored.
+     * </p>
+     *
+     * @param object the Object to be output
+     * @param style  the style of the <code>toString</code> to create,
+     *               may be <code>null</code>
+     * @param outputTransients ignored, kept for signature compatibility
+     * @param outputStatics ignored, kept for signature compatibility
+     * @return the String result
+     */
+    public static String toString(
+            final Object object,
+            final ToStringStyle style,
+            final boolean outputTransients,
+            final boolean outputStatics) {
+
+        return toString(object, style, (Class<Object>) null);
+    }
+
+    /**
+     * Builds a <code>toString</code> value from getters through reflection.
+     *
+     * <p>
+     * This overload hides the inherited
+     * {@link ReflectionToStringBuilder#toString(Object, ToStringStyle,
+     * boolean, boolean, Class)}, which would produce field based output.
+     * </p>
+     *
+     * <p>
+     * <code>outputTransients</code> and <code>outputStatics</code> have no
+     * meaning for property based output and are ignored.
+     * </p>
+     *
+     * @param <T>              the type of the object
+     * @param object           the Object to be output
+     * @param style            the style of the <code>toString</code> to
+     *                         create, may be <code>null</code>
+     * @param outputTransients ignored, kept for signature compatibility
+     * @param outputStatics    ignored, kept for signature compatibility
+     * @param reflectUpToClass the superclass to reflect up to (inclusive),
+     *                         may be <code>null</code>
+     * @return the String result
+     */
+    public static <T> String toString(
+            final T object,
+            final ToStringStyle style,
+            final boolean outputTransients,
+            final boolean outputStatics,
+            final Class<? super T> reflectUpToClass) {
+
+        return toString(object, style, reflectUpToClass);
+    }
+
+    /**
+     * Builds a <code>toString</code> value from getters through reflection.
+     *
+     * <p>
+     * This overload hides the inherited
+     * {@link ReflectionToStringBuilder#toString(Object, ToStringStyle,
+     * boolean, boolean, boolean, Class)}, which would produce field based
+     * output.
+     * </p>
+     *
+     * <p>
+     * <code>outputTransients</code> and <code>outputStatics</code> have no
+     * meaning for property based output and are ignored.
+     * </p>
+     *
+     * @param <T>               the type of the object
+     * @param object            the Object to be output
+     * @param style             the style of the <code>toString</code> to
+     *                          create, may be <code>null</code>
+     * @param outputTransients  ignored, kept for signature compatibility
+     * @param outputStatics     ignored, kept for signature compatibility
+     * @param excludeNullValues whether to exclude properties whose value is
+     *                          <code>null</code>
+     * @param reflectUpToClass  the superclass to reflect up to (inclusive),
+     *                          may be <code>null</code>
+     * @return the String result
+     */
+    public static <T> String toString(
+            final T object,
+            final ToStringStyle style,
+            final boolean outputTransients,
+            final boolean outputStatics,
+            final boolean excludeNullValues,
+            final Class<? super T> reflectUpToClass) {
+
+        final ToStringByGettersBuilder builder =
+                new ToStringByGettersBuilder(
+                        object, style, null, reflectUpToClass);
+        builder.setExcludeNullValues(excludeNullValues);
+        return builder.toString();
+    }
+
+    /**
+     * Builds a String for a toString method from getters including only the
+     * given property names.
+     *
+     * <p>
+     * This hides the inherited
+     * {@link ReflectionToStringBuilder#toStringInclude(Object, Collection)},
+     * which would produce field based output.
+     * </p>
+     *
+     * @param object            The object to "toString".
+     * @param includeFieldNames The property names to include.
+     *                          Null includes everything.
+     * @return The toString value.
+     */
+    public static String toStringInclude(
+            final Object object,
+            final Collection<String> includeFieldNames) {
+
+        return toStringInclude(
+                object, toNoNullStringArray(includeFieldNames));
+    }
+
+    /**
+     * Builds a String for a toString method from getters including only the
+     * given property names.
+     *
+     * <p>
+     * This hides the inherited
+     * {@link ReflectionToStringBuilder#toStringInclude(Object, String...)},
+     * which would produce field based output.
+     * </p>
+     *
+     * @param object            The object to "toString".
+     * @param includeFieldNames The property names to include.
+     * @return The toString value.
+     */
+    public static String toStringInclude(
+            final Object object,
+            final String... includeFieldNames) {
+
+        return new ToStringByGettersBuilder(object)
+                .setIncludeFieldNames(includeFieldNames)
                 .toString();
     }
 
@@ -311,6 +491,14 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
             return false;
         }
 
+        if (this.includeFieldNames != null
+                && this.includeFieldNames.length > 0
+                && Arrays.binarySearch(
+                this.includeFieldNames,
+                propertyDescriptor.getName()) < 0) {
+            return false;
+        }
+
         String propertyName = propertyDescriptor.getName();
         Method getter = propertyDescriptor.getReadMethod();
         Class<?> declaringClass = getter.getDeclaringClass();
@@ -346,10 +534,11 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                 return;
             }
 
-            Class<?> superclass = null;
-            if (!clazz.equals(Object.class)) {
-                superclass = clazz.getSuperclass();
+            if (clazz.equals(Object.class)) {
+                return;
             }
+
+            Class<?> superclass = clazz.getSuperclass();
 
             for(PropertyDescriptor propertyDescriptor :
                     Introspector.getBeanInfo(clazz, superclass)
@@ -358,26 +547,60 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                 final String fieldName = propertyDescriptor.getName();
                 if (this.accept(propertyDescriptor)) {
 
+                    final Object value;
                     try {
-                        this.append(
-                                fieldName, this.getValue(propertyDescriptor));
+                        value = this.getValue(propertyDescriptor);
+
+                    } catch (InvocationTargetException e) {
+                        if (!(e.getCause() instanceof RuntimeException)) {
+                            throw new RuntimeException(e);
+                        }
+
+                        appendNotAvailable(fieldName, e.getCause());
+                        continue;
 
                     } catch (IllegalAccessException |
-                            IllegalArgumentException |
-                            InvocationTargetException e) {
+                            IllegalArgumentException e) {
                         throw new RuntimeException(e);
 
                     } catch (RuntimeException e) {
-                        log.finer(e::toString);
-                        log.finest(() -> ExceptionUtils.getStackTrace(e));
+                        appendNotAvailable(fieldName, e);
+                        continue;
+                    }
 
-                        this.append(null, "<N/A>");
+                    try {
+                        this.append(fieldName, value);
+                    } catch (RuntimeException e) {
+                        appendNotAvailable(null, e);
                     }
                 }
             }
         } catch (IntrospectionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Logs the cause and reports <code>&lt;N/A&gt;</code> in place of the
+     * value that could not be rendered.
+     *
+     * <p>
+     * Pass the property name when the failure happened before anything was
+     * written, and <code>null</code> when the style has already written the
+     * name into the buffer, so that it is not repeated.
+     * </p>
+     *
+     * @param fieldName the property name, or <code>null</code> if already
+     *                  written
+     * @param cause     the exception raised
+     */
+    private void appendNotAvailable(
+            final String fieldName, final Throwable cause) {
+
+        log.finer(cause::toString);
+        log.finest(() -> ExceptionUtils.getStackTrace(cause));
+
+        this.append(fieldName, "<N/A>");
     }
 
     /**

@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Maven settings file for Jenkins -->
+<!-- Maven settings file for CI -->
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
     <servers>
+        <!-- Central Portal user token, not the portal account password. -->
         <server>
-            <id>ossrh</id>
-            <username>${env.OSSRH_USERNAME_PARAM}</username>
-            <password>${env.OSSRH_PASSWORD_PARAM}</password>
+            <id>central</id>
+            <username>${env.CENTRAL_USERNAME_PARAM}</username>
+            <password>${env.CENTRAL_PASSWORD_PARAM}</password>
         </server>
     </servers>
 
     <profiles>
         <profile>
-            <id>ossrh</id>
+            <id>central</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>

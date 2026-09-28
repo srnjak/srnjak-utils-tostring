@@ -3,7 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - '*'  # All branches
+      # '*' does not match a '/', so feature branches were never built.
+      - '**'  # All branches, including those with a slash
   workflow_dispatch:
   workflow_run:
     workflows: ["Merge Develop to Master"]
@@ -20,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /root/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -33,7 +34,7 @@ jobs:
         run: mvn -B package -s mvn-settings.xml
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packaged-jars
           path: target/*.jar
@@ -47,12 +48,12 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-jdk21-9
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up environment variables
         run: |
-          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
-          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_USERNAME_PARAM=${{ vars.CENTRAL_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_PASSWORD_PARAM=${{ secrets.CENTRAL_PASSWORD_PARAM }}' >> $GITHUB_ENV
 
       - name: Deploy with Maven
         run: |
@@ -68,14 +69,14 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-jdk21-9
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Ensures full history for tagging
 
       - name: Set up environment variables
         run: |
-          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
-          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_USERNAME_PARAM=${{ vars.CENTRAL_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_PASSWORD_PARAM=${{ secrets.CENTRAL_PASSWORD_PARAM }}' >> $GITHUB_ENV
 
       - name: Configure Git
         run: |
@@ -94,24 +95,9 @@ jobs:
           mvn -B versions:set -s mvn-settings.xml -DremoveSnapshot=true
           mvn -B scm:checkin -s mvn-settings.xml -Dmessage="[release] Release version prepared."
   
-      - name: Build and Deploy to OSSRH
+      - name: Publish to Maven Central
         run: |
-          mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
-
-      - name: Extract Last Staging Repository ID
-        env:
-          MVN_SETTINGS_PATH: '${{ github.workspace }}/mvn-settings.xml'
-        run: |
-          STAGING_REPO_ID=$(./scripts/extract_staging_repo_id.sh comsrnjak-)
-          echo "Extracted Staging Repository ID: $STAGING_REPO_ID"
-          echo "STAGING_REPO_ID=$STAGING_REPO_ID" >> $GITHUB_ENV
-
-      - name: Release to Maven Central
-        env:
-          MAVEN_OPTS: "--add-opens java.base/java.util=ALL-UNNAMED"
-        run: |
-          mvn -B nexus-staging:close -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
-          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
+          mvn -B clean scm:tag deploy -s mvn-settings.xml -P central -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
   
       - name: Prepare Next Snapshot Version
         run: |
@@ -127,7 +113,7 @@ jobs:
       image: srnjak/ci-builder-maven:3.9.6-jdk21-9
     steps:
       - name: Checkout develop branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: develop
           fetch-depth: 0  # Fetches all history for all branches and tags
