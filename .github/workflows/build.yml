@@ -52,8 +52,8 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
-          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_USERNAME_PARAM=${{ vars.CENTRAL_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_PASSWORD_PARAM=${{ secrets.CENTRAL_PASSWORD_PARAM }}' >> $GITHUB_ENV
 
       - name: Deploy with Maven
         run: |
@@ -75,8 +75,8 @@ jobs:
 
       - name: Set up environment variables
         run: |
-          echo 'OSSRH_USERNAME_PARAM=${{ vars.OSSRH_USERNAME_PARAM }}' >> $GITHUB_ENV
-          echo 'OSSRH_PASSWORD_PARAM=${{ secrets.OSSRH_PASSWORD_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_USERNAME_PARAM=${{ vars.CENTRAL_USERNAME_PARAM }}' >> $GITHUB_ENV
+          echo 'CENTRAL_PASSWORD_PARAM=${{ secrets.CENTRAL_PASSWORD_PARAM }}' >> $GITHUB_ENV
 
       - name: Configure Git
         run: |
@@ -95,24 +95,9 @@ jobs:
           mvn -B versions:set -s mvn-settings.xml -DremoveSnapshot=true
           mvn -B scm:checkin -s mvn-settings.xml -Dmessage="[release] Release version prepared."
   
-      - name: Build and Deploy to OSSRH
+      - name: Publish to Maven Central
         run: |
-          mvn -B clean scm:tag deploy -s mvn-settings.xml -P ossrh -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
-
-      - name: Extract Last Staging Repository ID
-        env:
-          MVN_SETTINGS_PATH: '${{ github.workspace }}/mvn-settings.xml'
-        run: |
-          STAGING_REPO_ID=$(./scripts/extract_staging_repo_id.sh comsrnjak-)
-          echo "Extracted Staging Repository ID: $STAGING_REPO_ID"
-          echo "STAGING_REPO_ID=$STAGING_REPO_ID" >> $GITHUB_ENV
-
-      - name: Release to Maven Central
-        env:
-          MAVEN_OPTS: "--add-opens java.base/java.util=ALL-UNNAMED"
-        run: |
-          mvn -B nexus-staging:close -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
-          mvn -B nexus-staging:release -s mvn-settings.xml -P ossrh -DstagingRepositoryId=${{ env.STAGING_REPO_ID }}
+          mvn -B clean scm:tag deploy -s mvn-settings.xml -P central -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
   
       - name: Prepare Next Snapshot Version
         run: |
