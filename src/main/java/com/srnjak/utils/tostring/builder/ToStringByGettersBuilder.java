@@ -346,10 +346,11 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                 return;
             }
 
-            Class<?> superclass = null;
-            if (!clazz.equals(Object.class)) {
-                superclass = clazz.getSuperclass();
+            if (clazz.equals(Object.class)) {
+                return;
             }
+
+            Class<?> superclass = clazz.getSuperclass();
 
             for(PropertyDescriptor propertyDescriptor :
                     Introspector.getBeanInfo(clazz, superclass)

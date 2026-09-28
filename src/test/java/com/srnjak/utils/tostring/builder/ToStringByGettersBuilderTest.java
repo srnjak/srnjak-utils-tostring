@@ -85,9 +85,7 @@ class ToStringByGettersBuilderTest {
      * {@code getClass()} property and it leaks into the output.
      */
     @Test
-    @Disabled("Defect: the inherited getClass() property is appended as "
-            + "'class=...'")
-    void shouldNotAppendClassProperty() {
+    void doesNotAppendClassProperty() {
         String result = ToStringByGettersBuilder.toString(ADDRESS, STYLE, null);
 
         assertFalse(result.contains("class="), result);
