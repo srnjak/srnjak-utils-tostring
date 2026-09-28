@@ -363,22 +363,38 @@ public class ToStringByGettersBuilder extends ReflectionToStringBuilder {
                         this.append(
                                 fieldName, this.getValue(propertyDescriptor));
 
+                    } catch (InvocationTargetException e) {
+                        if (e.getCause() instanceof RuntimeException) {
+                            appendNotAvailable(e.getCause());
+                        } else {
+                            throw new RuntimeException(e);
+                        }
+
                     } catch (IllegalAccessException |
-                            IllegalArgumentException |
-                            InvocationTargetException e) {
+                            IllegalArgumentException e) {
                         throw new RuntimeException(e);
 
                     } catch (RuntimeException e) {
-                        log.finer(e::toString);
-                        log.finest(() -> ExceptionUtils.getStackTrace(e));
-
-                        this.append(null, "<N/A>");
+                        appendNotAvailable(e);
                     }
                 }
             }
         } catch (IntrospectionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Logs the cause and reports <code>&lt;N/A&gt;</code> in place of the
+     * value that could not be read.
+     *
+     * @param cause the exception raised while reading the value
+     */
+    private void appendNotAvailable(final Throwable cause) {
+        log.finer(cause::toString);
+        log.finest(() -> ExceptionUtils.getStackTrace(cause));
+
+        this.append(null, "<N/A>");
     }
 
     /**

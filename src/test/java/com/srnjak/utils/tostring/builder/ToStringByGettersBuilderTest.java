@@ -98,9 +98,7 @@ class ToStringByGettersBuilderTest {
      * the sibling {@code catch (RuntimeException)} never sees it.
      */
     @Test
-    @Disabled("Defect: a throwing getter propagates RuntimeException instead "
-            + "of rendering <N/A>, contrary to the class javadoc")
-    void shouldReportNotAvailableWhenGetterThrows() {
+    void reportsNotAvailableWhenGetterThrows() {
         String result = ToStringByGettersBuilder.toString(
                 new Exploding(), STYLE, null);
 
