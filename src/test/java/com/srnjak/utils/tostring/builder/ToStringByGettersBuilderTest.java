@@ -3,10 +3,12 @@ package com.srnjak.utils.tostring.builder;
 import com.srnjak.utils.tostring.model.Address;
 import com.srnjak.utils.tostring.model.Computed;
 import com.srnjak.utils.tostring.model.Exploding;
+import com.srnjak.utils.tostring.model.HoldsBrokenToString;
 import com.srnjak.utils.tostring.model.WithExcludedGetter;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,8 +88,15 @@ class ToStringByGettersBuilderTest {
         String result = ToStringByGettersBuilder.toString(
                 new Exploding(), STYLE, null);
 
-        assertTrue(result.contains("fine=ok"), result);
-        assertTrue(result.contains("<N/A>"), result);
+        assertEquals("[broken=<N/A>,fine=ok]", result);
+    }
+
+    @Test
+    void reportsNotAvailableWhenValueCannotRenderItself() {
+        String result = ToStringByGettersBuilder.toString(
+                new HoldsBrokenToString(), STYLE, null);
+
+        assertEquals("[broken=<N/A>,ok=yes]", result);
     }
 
     @Test
